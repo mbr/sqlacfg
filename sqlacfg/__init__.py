@@ -3,7 +3,7 @@ import json
 from sqlalchemy import Column, String, distinct
 
 
-__version__ = '0.2.dev1'
+__version__ = '0.3.dev1'
 
 
 class ConfigSettingMixin(object):
