@@ -1,4 +1,4 @@
-from collections import MutableMapping
+from collections import MutableMapping, Mapping
 import json
 
 from sqlalchemy import Column, String, distinct
@@ -24,20 +24,24 @@ class ConfigSettingMixin(object):
     data = Column(String, nullable=True)
 
 
-class Config(object):
+class Config(Mapping):
     def __init__(self, model, session):
         self.model = model
         self.session = session
 
+    def __iter__(self):
+        for (section,) in self.session.query(distinct(self.model.section)):
+            yield section
+
+    def __len__(self):
+        return self.session.query(distinct(self.model.section)).count()
+
     def sections(self):
-        return set(s for (s,) in
-                   self.session.query(distinct(self.model.section)))
+        return set(s for s in self)
 
     def __contains__(self, key):
-        return (self.session.query(self.model)
-                .filter(self.model.section == key)
-                .limit(1)
-                .first()) is not None
+        return bool(self.session.query(self.model.section)
+                                .filter_by(section=key).first())
 
     def __getitem__(self, key):
         # return a specific section
