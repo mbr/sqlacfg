@@ -47,6 +47,22 @@ class Config(Mapping):
         # return a specific section
         return ConfigSection(self.model, self.session, key)
 
+    def resolve(self, name):
+        split = name.index('.')
+        return self[name[:split]], name[split+1:]
+
+    def cget(self, name):
+        section, key = self.resolve(name)
+        return section[key]
+
+    def cset(self, name, value):
+        section, key = self.resolve(name)
+        section[key] = value
+
+    def cdel(self, name):
+        section, key = self.resolve(name)
+        del section[key]
+
 
 class ConfigSection(MutableMapping):
     def __init__(self, model, session, section):

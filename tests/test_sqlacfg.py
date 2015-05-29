@@ -112,3 +112,18 @@ def test_delete(cfg):
 
     with pytest.raises(KeyError):
         del cfg['base']['foobar']
+
+
+def test_cget(cfg):
+    assert cfg.cget('base.key_a') == 123
+
+
+def test_cset(cfg):
+    cfg.cset('base.key_c', -2)
+    assert cfg['base']['key_c'] == -2
+
+
+def test_cdel(cfg):
+    cfg.cdel('base.key_a')
+
+    assert 'key_a' not in cfg['base']
