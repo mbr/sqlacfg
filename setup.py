@@ -12,7 +12,7 @@ def read(fname):
 
 setup(
     name='sqlacfg',
-    version='0.3.dev1',
+    version='0.3',
     description='Stores configurations in a database instead of a file',
     long_description=read('README.rst'),
     author='Marc Brinkmann',
