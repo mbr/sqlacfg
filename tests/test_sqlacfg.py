@@ -1,5 +1,6 @@
 import pytest
 from sqlacfg import ConfigSettingMixin, Config
+from sqlacfg.format import ini_format
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -127,3 +128,16 @@ def test_cdel(cfg):
     cfg.cdel('base.key_a')
 
     assert 'key_a' not in cfg['base']
+
+
+def test_ini_format(cfg):
+    expected = (
+        "[base]\n"
+        "key_a = 123\n"
+        "key_b = KEY B\n"
+        "\n"
+        "[other]\n"
+        "key_a = 456\n"
+    )
+
+    assert expected == ini_format(cfg)
