@@ -1,3 +1,4 @@
+from collections import MutableMapping
 import json
 
 from sqlalchemy import Column, String, distinct
@@ -43,33 +44,23 @@ class Config(object):
         return ConfigSection(self.model, self.session, key)
 
 
-class ConfigSection(object):
+class ConfigSection(MutableMapping):
     def __init__(self, model, session, section):
         self.model = model
         self.session = session
         self.section = section
 
-    def __contains__(self, key):
-        return bool(self.session.query(self.model).get((key, self.section)))
+    @property
+    def _all(self):
+        return self.session.query(self.model).filter_by(section=self.section)
 
     def __getitem__(self, key):
-        return self.get(key)
-
-    def get(self, key, *d):
-        if len(d) > 1:
-            raise TypeError('Only one extra argument allowed')
-
         cs = self.session.query(self.model).get((key, self.section))
 
-        if cs is not None:
-            # we found a record
-            return cs.value
+        if cs is None:
+            raise KeyError(key)
 
-        # return default
-        if d:
-            return d[0]
-
-        raise KeyError(key)
+        return cs.value
 
     def __setitem__(self, key, value):
         cs = self.session.query(self.model).get((key, self.section))
@@ -80,8 +71,34 @@ class ConfigSection(object):
 
         self.session.add(cs)
 
-    def iteritems(self):
-        for rec in self.session.query(self.model).filter_by(
+    def __delitem__(self, key):
+        rc = self.session.query(self.model).filter_by(
+            key=key,
             section=self.section
-        ):
+        ).delete()
+
+        if not rc:
+            raise KeyError(key)
+
+    def __iter__(self):
+        for (k,) in self.session.query(self.model.key).all():
+            yield k
+
+    def __len__(self):
+        return self._all.count()
+
+    # for greater efficiency, item-iteration and value-iteration is implemented
+    # directly
+    def iteritems(self):
+        for rec in self._all:
             yield (rec.key, rec.value)
+
+    def items(self):
+        return list(i for i in self.iteritems())
+
+    def itervalues(self):
+        for rec in self._all:
+            yield rec.value
+
+    def values(self):
+        return list(i for i in self.itervalues())

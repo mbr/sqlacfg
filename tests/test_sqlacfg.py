@@ -81,3 +81,34 @@ def test_contains(cfg):
 def test_iteritems(cfg):
     assert dict(cfg['base'].iteritems()) == {'key_a': 123,
                                              'key_b': 'KEY B'}
+
+
+def test_update(cfg):
+    new = {
+        'key_a': 999,
+        'key_c': -1,
+    }
+
+    cfg['base'].update(new)
+
+    assert dict(cfg['base'].iteritems()) == {'key_a': 999,
+                                             'key_b': 'KEY B',
+                                             'key_c': -1,
+                                             }
+
+
+def test_len(cfg):
+    assert len(cfg['base']) == 2
+
+
+def test_iter(cfg):
+    assert set(k for k in cfg['base']) == {'key_a', 'key_b'}
+
+
+def test_delete(cfg):
+    del cfg['base']['key_a']
+
+    assert 'key_a' not in cfg['base']
+
+    with pytest.raises(KeyError):
+        del cfg['base']['foobar']
